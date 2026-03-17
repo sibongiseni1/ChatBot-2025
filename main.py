@@ -1,35 +1,50 @@
-# chatbot.py
-import os
-from openai import OpenAI
+import tkinter as tk
+from tkinter import scrolledtext
 
-# Option 1: Directly set your API key (for quick testing)
-# client = OpenAI(api_key="YOUR_API_KEY_HERE")
 
-# Option 2: Use environment variable (recommended)
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+responses = {
+    "hello": "Hello! How can I help you?",
+    "hi": "Hi there!",
+    "Hi chat": "Heyy",
+    "how are you": "I am just a chatbot, but I am doing good!",
 
-def chat():
-    print("💬 Welcome to your Chatbot! Type 'quit' to exit.")
-    while True:
-        user_input = input("You: ")
-        if user_input.lower() in ["quit", "exit"]:
-            print("Chatbot: Goodbye! 👋")
-            break
+    "bye": "Goodbye! Have a good day"
+}
 
-        try:
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a helpful chatbot."},
-                    {"role": "user", "content": user_input}
-                ]
-            )
-            # Print the assistant's reply
-            reply = response.choices[0].message.content
-            print(f"Chatbot: {reply}\n")
+def send_message():
+    user_input = user_entry.get().lower()
+    if not user_input:
+        return  
+    chat_window.insert(tk.END, f"You: {user_input}\n")
+    
+    if user_input == "exit":
+        chat_window.insert(tk.END, "Chatbot: Goodbye\n")
+        root.after(1000, root.destroy)
+        return
 
-        except Exception as e:
-            print(f"Error: {e}")
+    response = responses.get(user_input, "Sorry, I don't understand you.")
+    chat_window.insert(tk.END, f"Chatbot: {response}\n")
+    user_entry.delete(0, tk.END)
+    chat_window.yview(tk.END)  
 
-if __name__ == "__main__":
-    chat()
+
+root = tk.Tk()
+root.title("Chatbot GUI")
+
+
+chat_window = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=50, height=20)
+chat_window.pack(padx=10, pady=10)
+chat_window.config(state=tk.NORMAL)
+
+
+user_entry = tk.Entry(root, width=40)
+user_entry.pack(side=tk.LEFT, padx=(10,0), pady=(0,10))
+user_entry.focus()
+
+
+send_button = tk.Button(root, text="Send", command=send_message)
+send_button.pack(side=tk.LEFT, padx=(5,10), pady=(0,10))
+
+root.bind('<Return>', lambda event: send_message())
+
+root.mainloop()
